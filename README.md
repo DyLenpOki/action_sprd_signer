@@ -1,77 +1,75 @@
 # Action SPRD image sign tool
 
-我是[中国人](README-ZH.md)
-
-Action Workflows to sign image for Unisoc/SPRD device.
+一个给紫光展锐（下文叫它展讯）设备自动签名镜像的Github工作流。**应该写完了**
 
 > [!Caution]  
-> The workflow isn't fully tested. Also, flashing takes risks. Thus, **IM NOT RESPONSIBLE FOR ANY DAMAGE TO YOUR DEVICES**
+> 这个工作流尚未完全测试，且刷机有风险，因此**本人不对你设备的任何损坏负责**
 
-# Introduce
+# 介绍
 
-As I know, two sign method are used by Unisoc. Please choose different signature methods based on your SoC.
+据我所知，展讯现在用了两种签名方法。请根据你的SoC型号选择正确的方法签名
 
-## AVBTOOL METHOD
+## AVBTOOL签名大法
 
 > [!NOTE]  
-> Workflow name: `Sign image (avbtool)`
+> 对应的工作流名：`Sign image (avbtool)`
 
-Use `avbtool` to sign the image. Check [here](https://www.hovatek.com/forum/thread-32664.html) and [here](https://www.hovatek.com/forum/thread-32674.html) if you want to know how does it work.
+用avbtool给你的镜像签名。可以看[这个](https://www.hovatek.com/forum/thread-32664.html)和[这个](https://www.hovatek.com/forum/thread-32674.html)教程来了解签名的原理。
 
-For example, **SC9832E/SL8541E** uses Android Verified Boot 2.0 to sign and verify the image. It should use avbtool method.
+打个比方，**SC9832E/SL8541E**就得用这个方法签名，因为它采用了Android启动时验证2.0（就是avb2.0）来验证镜像。
 
-Usually, if your device has vbmeta partition and it was not empty, you should use this method.
+如果我没猜错的话，你这设备有vbmeta分区而且不是空的，那十有八九得用这方法了。
 
-If you want to further confirm, you can check if your boot image can be recognized by avbtool. Also, check if vbmeta has extra content starting with `DHTB`. It may appears before the common header or at the end of file.
+想进一步确认的话，可以看看boot是否能被avbtool正常读取，并确认下vbmeta是否有以`DHTB`为开头的多余内容，可能在文件开头也可能在文件尾部
 
-SoCs using this method:
+目前已知使用该方法的SoC：
 - SC9832e/SL8541e
-- ...
+- 有待补充...
 
-## BSP SIGN METHOD
+## BSP签名大法
 
 > [!NOTE]  
-> Workflow name: `Sign image (Legacy)`
+> 对应的工作流名：`Sign image (Legacy)`
 
-Use Unisoc's BSP sign tool to sign the image. 
+用展讯自己的BSP签名工具签名镜像。
 
-BSP sign method often uses on uboot, fdl1/2, etc., excluding boot and recovery image. But **SC9820E/SL8521E** uses this method to sign the boot image, including devices using Android 4.4 and Android 8.1. 
+`FDL1/2, uboot`等等BSP镜像都会用展讯的BSP签名工具签名，但一般不会用来签boot/recovery镜像。只不过，**SC9820E/SL8521E**用了这种方式签名boot/recovery镜像，包括安卓4.4和8.1系统。可能还有其他SoC也会用到，不过我暂时不清楚。
 
-If your device doesn't have vbmeta pertition or it was empty, you may need to use this method to sign your boot image.
+如果我没猜错的话，你这设备没vbmeta分区，或者vbmeta分区是空的，那十有八九得用这方法了。
 
-If you want to further confirm, you can check whether the boot image has extra content starting with `DHTB`. It usually appears before `!ANDROID` header.
+想进一步确认的话，可以检查下boot是否有一段多出来的内容，以`DHTB`开头，通常在文件开头，`ANDROID!`文件头前面
 
-SoCs using this method:
+目前已知使用该方法的SoC：
 - SC9820e/SL8521e
 - W377e
-- ...
+- 有待补充...
 
-# How to use
+# 使用方法
 
-You should provide `boot\recovery` image you want to sign. Original `vbmeta` image from your device is also needed if you are using avbtool method. **DON'T REMOVE DHTB HEADER IN YOUR VBMETA IMAGE!**
+你需要提供你想要签名的 `boot\recovery` 镜像。如果你用avbtool大法，还需要设备里提出来的原版 `vbmeta` 。**VBMETA镜像里的DHTB头不要删掉！！！**
 
-1. **Use `Fork` or `Use this template` to clone this reposity to your personal account**
+1. **使用`Fork`或`Use this template`以克隆仓库到你的账号里**
 ![image](.res/1.png)
 
-2. **Upload your image to somewhere that can get the DIRECT LINK to your image. For example, I upload my image to this reposity and used "View raw" to get the link.**
+2. **把镜像上传到一个能获取文件直链的地方。你可以把你的镜像上传到你的仓库里，然后用"View raw"拿到文件直链**
 ![image](.res/2.png)
 ![image](.res/3.png)
 
-3. **Open the `Actions` tab and choose a workflow. Read the [introduce](#introduce) to help you make decision.**
+3. **打开`Actions`页面，然后选择一个合适的工作流。读读上面的[介绍](#介绍)能帮你选择到正确的工作流**
 ![image](.res/4.png)
 
-4. **Press `Run workflow` button, and fill in according to the above parameter description, then press `Run workflow`**
+4. **按下`Run workflow`按钮，然后把参数都填上**
 ![image](.res/5.png)
 
-- If you choose `Sign image (Legacy)`, there's only one parameter you need to fill in.
+- 如果你用的是`Sign image (Legacy)`，你只用填一个参数就行了。
 
 ![image](.res/6.png)
 
-- But if you choose `Sign image (avbtool)`, the number of parameters will increase to 5.
+- 但如果是`Sign image (avbtool)`，那要填的可就多了
 
 ![image](.res/7.png)
 
-- The fourth parameter may be confusing. You can read back the boot/recovery partition of your device **without trimming zeros**. The size of the output file is the value of this parameter.
+- 可能有人不会填第四个参数，这里笔者给个办法，就是回读一下boot/recovery分区，然后把提出来的文件的大小填进去就行了。**如果你操作有误，文件大小可能会发生变化，那样就不准了**
 
-5. **It wont take much time. After few seconds, the signed image will be uploaded to artifact. You can download it right now and flash into your device!**
+5. **点`Run workflow`之后，啪的一下，很快啊，镜像就签好了。签完的镜像传到Artifacts上了，自行下载即可**
 ![image](.res/8.png)
